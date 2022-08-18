@@ -194,7 +194,9 @@ export class ProductController {
     @Body() createProduct: CreateProductDto,
     @UploadedFiles() image: Array<Express.Multer.File>,
   ) {
-    return this.productService.createProduct(createProduct, image);
+    console.log(createProduct);
+    console.log(image);
+    // return this.productService.createProduct(createProduct, image);
   }
 
   @Get('/')

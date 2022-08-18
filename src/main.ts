@@ -5,7 +5,7 @@ import { AppModule } from './app.module';
 import { PrismaService } from './prisma/prisma.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule);
   const PORT = process.env.PORT;
 
   //http reqeust global prefix setting and exclude path: /
@@ -39,11 +39,7 @@ async function bootstrap() {
   if (typeof whitelist === 'string') {
     splitWhitelist = whitelist.split(',');
   }
-  app.enableCors({
-    allowedHeaders: '*',
-    origin: '*',
-    credentials: true,
-  });
+  app.enableCors();
 
   await app.listen(PORT);
   console.log(splitWhitelist);
