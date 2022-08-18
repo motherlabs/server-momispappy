@@ -15,7 +15,14 @@ export const bluedogBabyParsing = async (url) => {
     descriptionImage: 1,
   };
   try {
-    browser = await puppeteer.launch({ headless: true });
+    if (process.env.NODE_ENV === 'development') {
+      browser = await puppeteer.launch({ headless: true });
+    } else {
+      browser = await puppeteer.launch({
+        headless: true,
+        executablePath: '/usr/bin/chromium-browser',
+      });
+    }
     const page = await browser.newPage();
     // set the viewport size
     await page.setViewport({
@@ -88,14 +95,6 @@ export const bluedogBabyParsing = async (url) => {
         ('https:' + $(node).find('img').attr('src')).toString(),
       );
     });
-
-    // console.log(
-    //   '메인이미지 : ',
-    //   'https:' +
-    //     $(
-    //       '#contents > div.xans-element-.xans-product.xans-product-detail > div.detailArea > div.xans-element-.xans-product.xans-product-image.imgArea > div.keyImg > div > a > img',
-    //     ).attr('src'),
-    // );
 
     // scroll down then screenshot
     await scrollPageToBottom(page, {
