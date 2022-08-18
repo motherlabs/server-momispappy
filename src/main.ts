@@ -47,7 +47,7 @@ async function bootstrap() {
     //     callback(new Error('Not allowed by CORS'));
     //   }
     // },
-    origin: whitelist,
+    origin: splitWhitelist,
   });
 
   await app.listen(PORT);
