@@ -40,14 +40,9 @@ async function bootstrap() {
     splitWhitelist = whitelist.split(',');
   }
   app.enableCors({
-    // origin: function (origin, callback) {
-    //   if (!origin || splitWhitelist.indexOf(origin) !== -1) {
-    //     callback(null, true);
-    //   } else {
-    //     callback(new Error('Not allowed by CORS'));
-    //   }
-    // },
-    origin: splitWhitelist,
+    allowedHeaders: '*',
+    origin: '*',
+    credentials: true,
   });
 
   await app.listen(PORT);
