@@ -16,10 +16,14 @@ export const bluedogBabyParsing = async (url) => {
   };
   try {
     if (process.env.NODE_ENV === 'development') {
-      browser = await puppeteer.launch({ headless: true });
+      browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
     } else {
       browser = await puppeteer.launch({
         headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
         // executablePath: '/usr/bin/chromium-browser',
       });
     }
