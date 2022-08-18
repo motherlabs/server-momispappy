@@ -41,7 +41,6 @@ async function bootstrap() {
   if (typeof whitelist === 'string') {
     splitWhitelist = whitelist.split(',');
   }
-  console.log(splitWhitelist);
   app.enableCors({
     origin: function (origin, callback) {
       if (!origin || splitWhitelist.indexOf(origin) !== -1) {
@@ -53,6 +52,7 @@ async function bootstrap() {
   });
 
   await app.listen(PORT);
+  console.log(splitWhitelist);
   console.log(`server running ${process.env.NODE_ENV}:${PORT}`);
 }
 bootstrap();
