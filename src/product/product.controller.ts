@@ -1,22 +1,34 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   NotFoundException,
+  Param,
   Post,
   Put,
   UploadedFile,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import {
-  AnyFilesInterceptor,
-  FileInterceptor,
-  FilesInterceptor,
-} from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
+import { jwtGuard } from 'src/auth/jwt.guard';
 import { bluedogBabyParsing } from 'src/utils/crawling/bluedog-baby';
-import { CreateBrandDto, CreateProductDto } from './dto/product.dto';
+import {
+  CreateBrandDto,
+  CreateProductDto,
+  UpdateProductDto,
+} from './dto/product.dto';
 import { ProductService } from './product.service';
 
 @Controller('product')
@@ -31,6 +43,8 @@ export class ProductController {
   }
 
   @Post('/category')
+  @UseGuards(jwtGuard)
+  @ApiBearerAuth('accessToken')
   @ApiOperation({ summary: '카테고리 등록 API' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -59,6 +73,8 @@ export class ProductController {
   }
 
   @Put('/category')
+  @UseGuards(jwtGuard)
+  @ApiBearerAuth('accessToken')
   @ApiOperation({ summary: '카테고리 수정API' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -96,6 +112,8 @@ export class ProductController {
   }
 
   @Post('/brand')
+  @UseGuards(jwtGuard)
+  @ApiBearerAuth('accessToken')
   @ApiOperation({ summary: '브랜드 등록 API' })
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('image'))
@@ -107,6 +125,8 @@ export class ProductController {
   }
 
   @Put('/brand')
+  @UseGuards(jwtGuard)
+  @ApiBearerAuth('accessToken')
   @ApiOperation({ summary: '브랜드 수정API' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -138,7 +158,9 @@ export class ProductController {
   }
 
   @Post('/crawling')
-  @ApiOperation({ summary: '크롤링 테스트 API' })
+  @UseGuards(jwtGuard)
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({ summary: '상품 크롤리 조회 API' })
   @ApiBody({
     schema: {
       type: 'object',
@@ -162,6 +184,8 @@ export class ProductController {
   }
 
   @Post('/')
+  @UseGuards(jwtGuard)
+  @ApiBearerAuth('accessToken')
   @ApiOperation({ summary: '상품 등록 API' })
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AnyFilesInterceptor())
@@ -169,7 +193,45 @@ export class ProductController {
     @Body() createProduct: CreateProductDto,
     @UploadedFiles() image: Array<Express.Multer.File>,
   ) {
-    console.log(createProduct.relations.split(','));
-    // return this.productService.createProduct(createProduct, image);
+    return this.productService.createProduct(createProduct, image);
+  }
+
+  @Get('/')
+  @ApiOperation({ summary: '상품 정보 리스트 API' })
+  async findAllProduct() {
+    return this.productService.findAllProduct();
+  }
+
+  @Get('/:id')
+  @UseGuards(jwtGuard)
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({ summary: '상품 정보 API' })
+  @ApiParam({ name: 'id', required: true })
+  async findOneProduct(@Param('id') id: string) {
+    return this.productService.findOneProduct(id);
+  }
+
+  @Delete('/:id')
+  @UseGuards(jwtGuard)
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({ summary: '상품 삭제 API' })
+  @ApiParam({ name: 'id', required: true })
+  async deleteProduct(@Param('id') id: string) {
+    return this.productService.deleteProduct(id);
+  }
+
+  @Put('/:id')
+  @UseGuards(jwtGuard)
+  @ApiBearerAuth('accessToken')
+  @ApiOperation({ summary: '상품 수정 API' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+  })
+  async updateProduct(
+    @Param('id') id: string,
+    @Body() updateProduct: UpdateProductDto,
+  ) {
+    return this.productService.updateProduct(id, updateProduct);
   }
 }

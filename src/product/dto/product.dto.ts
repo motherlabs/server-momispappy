@@ -1,5 +1,26 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { ApiParam, ApiProperty } from '@nestjs/swagger';
+import { Relation } from '@prisma/client';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+
+export class RelationType {
+  @ApiProperty()
+  toProductId: number;
+  @ApiProperty()
+  fromProductId: number;
+}
+
+export class DeleteImageType {
+  @ApiProperty()
+  id: number;
+  @ApiProperty()
+  location: string;
+}
 
 export class CreateProductDto {
   @ApiProperty({ required: true })
@@ -22,7 +43,10 @@ export class CreateProductDto {
   @IsNotEmpty()
   readonly price: string;
 
-  @ApiProperty({ required: true })
+  @ApiProperty({
+    required: true,
+    example: 'ex)true',
+  })
   @IsNotEmpty()
   readonly isEvent: string;
 
@@ -53,6 +77,46 @@ export class CreateProductDto {
     required: false,
   })
   readonly relations: string;
+}
+
+export class UpdateProductDto {
+  @ApiProperty({ required: true })
+  @IsNumber()
+  readonly categoryId: number;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  readonly name: string;
+
+  @ApiProperty({ required: true })
+  @IsNumber()
+  readonly price: number;
+
+  @ApiProperty({ required: true })
+  @IsNumber()
+  readonly discount: number;
+
+  @ApiProperty({ required: true })
+  @IsNumber()
+  readonly shippingFee: number;
+
+  @ApiProperty({
+    required: true,
+  })
+  @IsBoolean()
+  readonly isEvent: boolean;
+
+  @ApiProperty({ required: false, type: [DeleteImageType] })
+  @IsOptional()
+  readonly deleteImages: DeleteImageType[];
+
+  @ApiProperty({ required: false, type: [RelationType] })
+  @IsOptional()
+  readonly oldRelations: Relation[];
+
+  @ApiProperty({ required: false, type: [RelationType] })
+  @IsOptional()
+  readonly recentRelations: Relation[];
 }
 
 export class CreateBrandDto {

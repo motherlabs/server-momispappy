@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ProductImageType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UploadService } from 'src/upload/upload.service';
-import { CreateProductDto } from './dto/product.dto';
+import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 
 @Injectable()
 export class ProductService {
@@ -12,7 +12,9 @@ export class ProductService {
   ) {}
 
   async findAllCategory() {
-    return await this.prismaService.category.findMany();
+    return await this.prismaService.category.findMany({
+      orderBy: { id: 'asc' },
+    });
   }
 
   async createCategory(name: string, image: Express.Multer.File) {
@@ -66,7 +68,7 @@ export class ProductService {
   }
 
   async findAllBrand() {
-    return await this.prismaService.brand.findMany();
+    return await this.prismaService.brand.findMany({ orderBy: { id: 'asc' } });
   }
 
   async createBrand(name: string, image: Express.Multer.File) {
@@ -182,6 +184,21 @@ export class ProductService {
         });
       });
 
+      if (createProduct.relations) {
+        const relationList: {
+          toProductId: number;
+          fromProductId: number;
+        }[] = [];
+        const relations = createProduct.relations.split(',');
+        relations.map((v) => {
+          relationList.push({
+            toProductId: product.id,
+            fromProductId: parseInt(v),
+          });
+        });
+        await this.prismaService.relation.createMany({ data: relationList });
+      }
+
       await this.prismaService.$transaction([
         this.prismaService.productImage.createMany({ data: mainImageList }),
         this.prismaService.productImage.createMany({
@@ -195,5 +212,112 @@ export class ProductService {
         descriptionImageLocation: descriptionImageLocation,
       };
     }
+  }
+  async findAllProduct() {
+    return await this.prismaService.product.findMany({
+      where: { state: 'NORMAL' },
+      orderBy: { id: 'asc' },
+      include: {
+        ProductImage: true,
+        brand: true,
+        category: true,
+        toProduct: {
+          include: {
+            fromProduct: {
+              include: {
+                ProductImage: true,
+              },
+            },
+          },
+          where: {
+            fromProduct: {
+              state: 'NORMAL',
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async findOneProduct(id: string) {
+    const productId = parseInt(id);
+
+    return await this.prismaService.product.findFirst({
+      where: { id: productId, state: 'NORMAL' },
+      include: {
+        ProductImage: true,
+        brand: true,
+        category: true,
+        toProduct: {
+          include: {
+            fromProduct: {
+              include: {
+                ProductImage: true,
+              },
+            },
+          },
+          where: {
+            fromProduct: {
+              state: 'NORMAL',
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async updateProduct(id: string, updateProduct: UpdateProductDto) {
+    const productId = parseInt(id);
+    const product = await this.prismaService.product.update({
+      where: { id: productId },
+      data: {
+        categoryId: updateProduct.categoryId,
+        name: updateProduct.name,
+        price: updateProduct.price,
+        discount: updateProduct.discount,
+        shippingFee: updateProduct.shippingFee,
+        isEvent: updateProduct.isEvent,
+      },
+    });
+    if (product) {
+      console.log('update Product success');
+      if (updateProduct.deleteImages.length > 0) {
+        const deleteImageIdList: number[] = [];
+        const deleteImageLocationList: string[] = [];
+        for (const deleteImage of updateProduct.deleteImages) {
+          deleteImageIdList.push(deleteImage.id);
+          deleteImageLocationList.push(deleteImage.location);
+        }
+        await this.prismaService.productImage.deleteMany({
+          where: { id: { in: deleteImageIdList } },
+        });
+        console.log('delete s3 image success');
+        await this.uploadService.deleteImage(deleteImageLocationList);
+        console.log('delete image table success');
+      }
+
+      if (updateProduct.oldRelations.length > 0) {
+        await this.prismaService.relation.deleteMany({
+          where: { toProductId: productId },
+        });
+        console.log('old success');
+      }
+      if (updateProduct.recentRelations.length > 0) {
+        await this.prismaService.relation.createMany({
+          data: updateProduct.recentRelations,
+        });
+        console.log('recent success');
+      }
+    }
+
+    return product;
+  }
+
+  async deleteProduct(id: string) {
+    const productId = parseInt(id);
+    return await this.prismaService.product.update({
+      where: { id: productId },
+      data: { state: 'DELETE' },
+    });
   }
 }

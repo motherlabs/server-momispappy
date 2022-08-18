@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import * as cheerio from 'cheerio';
 import * as puppeteer from 'puppeteer';
 import { scrollPageToBottom } from 'puppeteer-autoscroll-down';
@@ -14,7 +15,7 @@ export const bluedogBabyParsing = async (url) => {
     descriptionImage: 1,
   };
   try {
-    browser = await puppeteer.launch({ headless: false });
+    browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     // set the viewport size
     await page.setViewport({
@@ -22,7 +23,7 @@ export const bluedogBabyParsing = async (url) => {
       height: 1080,
       deviceScaleFactor: 1,
     });
-    await page.goto(url, { waitUntil: 'networkidle0' });
+    await page.goto(url, { waitUntil: 'networkidle0', timeout: 50000 });
     // await clickEventHandler();
     const html = await page.content();
     let $ = await cheerio.load(html);
@@ -110,6 +111,7 @@ export const bluedogBabyParsing = async (url) => {
     return bluedogBaby;
   } catch (e) {
     console.log(e);
+    throw new NotFoundException();
   } finally {
     await browser.close();
   }

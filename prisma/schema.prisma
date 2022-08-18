@@ -99,7 +99,7 @@ model Product {
   name             String
   price            Int
   shippingFee      Int            @default(0)
-  discount         Int
+  discount         Int            @default(0)
   views            Int            @default(0)
   state            State          @default(NORMAL)
   createdAt        DateTime       @default(now())

@@ -92,14 +92,17 @@ export class AuthService {
     );
   }
 
-  async updateRefreshToken(refreshToken, username: string) {
+  async updateRefreshToken(refreshToken: string | null, username: string) {
+    let hashedRefreshToken: string;
     if (refreshToken) {
-      refreshToken = await hashed.generate(refreshToken);
+      hashedRefreshToken = await hashed.generate(refreshToken);
+    } else {
+      hashedRefreshToken = refreshToken;
     }
 
     await this.prismaService.user.update({
       where: { name: username },
-      data: { refreshToken },
+      data: { refreshToken: hashedRefreshToken },
     });
   }
 
@@ -112,6 +115,7 @@ export class AuthService {
       body.refreshToken,
       existUser.refreshToken,
     );
+    console.log(isRefreshTokenMatching);
 
     if (isRefreshTokenMatching) {
       const accessToken = await this.getAccessToken(existUser.id);
