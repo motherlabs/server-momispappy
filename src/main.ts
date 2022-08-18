@@ -35,8 +35,8 @@ async function bootstrap() {
   await prismaService.enableShutdownHooks(app);
 
   //limitsetting
-  app.use(json({ limit: '50mb' }));
-  app.use(urlencoded({ limit: '50mb', extended: true }));
+  app.use(json({ limit: '100mb' }));
+  app.use(urlencoded({ limit: '100mb', extended: true }));
 
   //CORS
   const whitelist = process.env.CORS_ORIGIN || [];
