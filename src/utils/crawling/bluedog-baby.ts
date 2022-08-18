@@ -103,7 +103,7 @@ export const bluedogBabyParsing = async (url) => {
     });
     // 정보 스크린샷
     const info = await page.$('#prdDetail > div');
-    await info.screenshot({ path: 'static/1.png' });
+    await info.screenshot({ path: 'static/1.jpg' });
 
     await browser.close();
 
