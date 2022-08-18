@@ -20,7 +20,7 @@ export const bluedogBabyParsing = async (url) => {
     } else {
       browser = await puppeteer.launch({
         headless: true,
-        executablePath: '/usr/bin/chromium-browser',
+        // executablePath: '/usr/bin/chromium-browser',
       });
     }
     const page = await browser.newPage();
