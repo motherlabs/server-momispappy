@@ -176,6 +176,7 @@ export class ProductController {
   })
   async crawling(@Body() body: { pageLocation: string; name: string }) {
     const { pageLocation, name } = body;
+    console.log('crawling Location: ', pageLocation);
     if (name === '블루독베이비') {
       return await bluedogBabyParsing(pageLocation);
     } else {
