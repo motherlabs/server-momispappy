@@ -1,6 +1,7 @@
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { json, urlencoded } from 'body-parser';
 import { AppModule } from './app.module';
 import { PrismaService } from './prisma/prisma.service';
 
@@ -33,13 +34,25 @@ async function bootstrap() {
   const prismaService = app.get(PrismaService);
   await prismaService.enableShutdownHooks(app);
 
+  //limitsetting
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ limit: '50mb', extended: true }));
+
   //CORS
   const whitelist = process.env.CORS_ORIGIN || [];
   let splitWhitelist: string[];
   if (typeof whitelist === 'string') {
     splitWhitelist = whitelist.split(',');
   }
-  app.enableCors();
+  app.enableCors({
+    origin: function (origin, callback) {
+      if (!origin || splitWhitelist.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+  });
 
   await app.listen(PORT);
   console.log(splitWhitelist);
